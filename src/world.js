@@ -3,7 +3,8 @@ class World {
     #draw = null;
     #cells = {};
     #cellSize = 100;
-    #displayCells = true;
+    #displayCells = false;
+    #player = new Player(1280/2, 720/2);
     
     /**
      * @param {Draw | String | HTMLCanvasElement} draw
@@ -15,6 +16,8 @@ class World {
             this.#draw = draw
         if (!(this.#draw instanceof Draw))
             throw new Error("draw must be an instance of Draw");
+
+        this.add(this.#player);
 
         this.#update(0, 0);
     }
@@ -45,8 +48,11 @@ class World {
 
         if (cell == entity.cell) return;
 
-        if (entity.cell != null)
+        if (entity.cell != null) {
             entity.cell.remove(entity);
+            if (entity.cell.size == 0)
+                delete this.#cells[entity.cell.x][entity.cell.y];
+        }
 
         cell.add(entity);
     }
@@ -68,6 +74,7 @@ class World {
                         this.#updateCell(e);
                     }
 
+                    // e.drawDebug(this.#draw);
                     e.draw(this.#draw);
                 });
 
@@ -76,7 +83,6 @@ class World {
             });
         });
 
-        // if (Object.entries(this.#cells).length == 0)
         window.requestAnimationFrame(nextTime => {this.#update(nextTime, time)});
     }
 }
@@ -94,6 +100,18 @@ class Cell {
         this.#y = y;
         this.#width = width;
         this.#height = height;
+    }
+
+    get size() {
+        return this.#entities.size;
+    }
+
+    get x() {
+        return this.#x;
+    }
+
+    get y() {
+        return this.#y;
     }
 
     getEntities() {
@@ -122,66 +140,5 @@ class Cell {
             throw new Error("entity must be an instance of Entity");
 
         this.#entities.remove(entity);
-    }
-}
-
-class Entity {
-
-    _x = 0;
-    _y = 0;
-    _hasMoved = false;
-    _cell = null;
-    _id = uniqueId();
-
-    constructor(x, y) {
-        this._x = x;
-        this._y = y;
-    }
-
-    get cell() {
-        return this._cell;
-    }
-    set cell(c) {
-        this._cell = c;
-    }
-
-    get x() {
-        return this._x;
-    }
-
-    get y() {
-        return this._y;
-    }
-
-    get hasMoved() {
-        return this._hasMoved;
-    }
-
-    update(delta) {
-        
-    }
-
-    draw(draw) {
-        draw.rect(this.x - 5, this.y - 5, 10, 10);
-    }
-}
-
-class RandMover extends Entity {
-
-    #vec = (new Vector(10)).angle(Math.random() * 360);
-
-    constructor(x, y) {
-        super(x, y);
-    }
-
-    update(delta) {
-        this._hasMoved = false;
-        if (Math.random() < 10 * delta) {
-            this.#vec.angle(Math.random() * 360);
-        }
-        
-        this._x += this.#vec.x * delta;
-        this._y += this.#vec.y * delta;
-        this._hasMoved = true;
     }
 }

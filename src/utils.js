@@ -16,18 +16,24 @@ class HashMap {
             this.#hashFunc = hashFunc;
     }
 
+    get size() {
+        return this.#map.size;
+    }
+
     add(val) {
+        const key = this.#hashFunc(val);
         // make list to prevent key collision
-        const list = this.#map.get(this.#hashFunc(val));
+        const list = this.#map.get(key);
 
         if (list == null)
-            this.#map.set(this.#hashFunc(val), [val]);
+            this.#map.set(key, [val]);
         else
             list.push(val);
     }
 
     remove(val) {
-        const list = this.#map.get(this.#hashFunc(val));
+        const key = this.#hashFunc(val);
+        const list = this.#map.get(key);
 
         // console.log(this.#map);
         // console.log(val);
@@ -37,9 +43,13 @@ class HashMap {
             return null;
 
         const idx = list.indexOf(val);
-        if (!(idx > -1)) return null;        
+        if (!(idx > -1)) return null;
 
-        return list.splice(idx, 1);
+        list.splice(idx, 1);
+        if (list.length == 0)
+            this.#map.delete(key);
+
+        return val;
     }
 
     getAll() {
@@ -86,11 +96,32 @@ class Vector {
         return this.#y * this.#h;
     }
 
+    getAngle() {
+        return this.getRad() * (180/Math.PI);
+    }
+
+    getRad() {
+        return Math.atan2(this.#y, this.#x);
+    }
+
     angle(deg) {
         if (this.#h == 0) return this;
+        deg = deg * (Math.PI/180);
 
         this.#x = Math.cos(deg) * this.#h;
         this.#y = Math.sin(deg) * this.#h;
+
+        return this;
+    }
+
+    changeAngle(deg) {
+        if (this.#h == 0) return this;
+        deg = deg * (Math.PI/180);
+
+        const ang = this.getRad();
+
+        this.#x = Math.cos(ang + deg) * this.#h;
+        this.#y = Math.sin(ang + deg) * this.#h;
 
         return this;
     }
