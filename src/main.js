@@ -1,8 +1,11 @@
 const main = () => {
     let world = new World("view");
 
-    // world.add(new Entity(100, 100));
+    // world.add(new Entity(400, 200));
+    // world.add(new Entity(800, 720/2 + 200));
+    // world.add(new Entity(800, 720/2 - 200));
     
+    // world.add(new RandMover(Math.floor(Math.random() * 1280), Math.floor(Math.random() * 720)));
     for (let i = 0; i < 50; i++) {
         world.add(new RandMover(Math.floor(Math.random() * 1280), Math.floor(Math.random() * 720)));
     }

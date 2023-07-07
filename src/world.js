@@ -3,7 +3,8 @@ class World {
     #draw = null;
     #cells = {};
     #cellSize = 100;
-    #displayCells = false;
+    #displayCells = true;
+    // #displayCells = false;
     #player = new Player(1280/2, 720/2);
     
     /**
@@ -20,6 +21,108 @@ class World {
         this.add(this.#player);
 
         this.#update(0, 0);
+    }
+
+    /**
+     * @returns {Number}
+     */
+    get cellSize() {
+        return this.#cellSize;
+    }
+
+    /**
+     * @param {Number} x 
+     * @param {Number} y 
+     * @returns {Cell | null}
+     */
+    #getCell(x, y) {
+        if (this.#cells[x] == null) return null;
+        if (this.#cells[x][y] == null) return null;
+        return this.#cells[x][y];
+    }
+
+    /**
+     * @param {Entity} ent
+     * @param {Vector} view
+     * @param {Number} fov
+     * @returns {Array<Entity>}
+     */
+    getEntitiesInView(ent, view, fov) {
+        // this whole method is terrible but I can't be bothered to do it better
+        const left =  (new Vector(1)).angle(view.getAngle() - fov / 2);
+        const right = (new Vector(1)).angle(view.getAngle() + fov / 2);
+        const rays = [
+            left,
+            (new Vector(1)).angle(view.getAngle() - fov / 4),
+            (new Vector(1)).angle(view.getAngle()),
+            (new Vector(1)).angle(view.getAngle() + fov / 4),
+            right
+        ];
+
+        const cellX = ent.x / this.cellSize;
+        const cellY = ent.y / this.cellSize;
+
+        const ents = [];
+        const visited = new Set();
+
+        let checkCell = (cell) => {
+            if (cell != null && !visited.has(cell)) {
+                cell.getEntities().forEach(e => {
+                    if (ent == e) return;
+                    
+                    const ang = ent.angleTo(e);
+
+                    let l = left.getAngle();
+                    let m = ang;
+                    let r = right.getAngle();
+                    if (r < 0) {
+                        r = 180 + (180 - Math.abs(r));
+                    }
+                    if (l < 0) {
+                        l = 180 + (180 - Math.abs(l));
+                    }
+                    if (m < 0) {
+                        m = 180 + (180 - Math.abs(m));
+                    }
+
+                    if (l > r) {
+                        l -= 360;
+                    }
+                    if (m > r) {
+                        m -= 360;
+                    }
+
+                    console.log(`${l}, ${m}, ${r}`);
+
+                    if ((l < m && m < r)) {
+                        e._debugColor = "red";
+                    }
+                });
+            }
+            visited.add(cell);
+        }
+
+        checkCell(this.#getCell(Math.floor(cellX) + 1, Math.floor(cellY)))
+        checkCell(this.#getCell(Math.floor(cellX) - 1, Math.floor(cellY)))
+        checkCell(this.#getCell(Math.floor(cellX) - 1, Math.floor(cellY) + 1))
+        checkCell(this.#getCell(Math.floor(cellX) - 1, Math.floor(cellY) - 1))
+        checkCell(this.#getCell(Math.floor(cellX) + 1, Math.floor(cellY) + 1))
+        checkCell(this.#getCell(Math.floor(cellX) + 1, Math.floor(cellY) - 1))
+        checkCell(this.#getCell(Math.floor(cellX), Math.floor(cellY) + 1))
+        checkCell(this.#getCell(Math.floor(cellX), Math.floor(cellY) - 1))
+
+        rays.forEach(vec => {
+            while (vec.h < view.h) {    
+                checkCell(this.#getCell(Math.floor(cellX + vec.x), Math.floor(cellY + vec.y)));
+                checkCell(this.#getCell(Math.floor(cellX + vec.x), Math.ceil(cellY + vec.y)));
+                checkCell(this.#getCell(Math.ceil(cellX + vec.x),  Math.ceil(cellY + vec.y)));
+                checkCell(this.#getCell(Math.ceil(cellX + vec.x),  Math.floor(cellY + vec.y)));
+    
+                vec.h += 1;
+            }
+        });
+
+        return ents;
     }
 
     /**
@@ -68,7 +171,7 @@ class World {
                 const ents = cell.getEntities();
 
                 ents.forEach(e => {
-                    e.update(delta);
+                    e.update(delta, this);
 
                     if (e.hasMoved) {
                         this.#updateCell(e);
@@ -93,7 +196,7 @@ class Cell {
     #y = null;
     #width = null;
     #height = null;
-    #entities = new HashMap(obj => obj._id);
+    #entities = new HashMap(obj => obj.id);
 
     constructor(x, y, width, height) {
         this.#x = x;
@@ -114,6 +217,9 @@ class Cell {
         return this.#y;
     }
 
+    /**
+     * @returns {Array<Entity>}
+     */
     getEntities() {
         return this.#entities.getAll();
     }

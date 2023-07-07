@@ -84,8 +84,22 @@ class Vector {
         if (h != null)
             this.#h = h;
 
-        this.#x = this.#h;
+        this.#x = 1;
         this.#y = 0;
+    }
+
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @returns {Vector}
+     */
+    static xy(x, y) {
+        const v = new Vector(Math.sqrt((x*x + y*y)));
+
+        v.#x = x / v.#h;
+        v.#y = y / v.#h;
+
+        return v;
     }
 
     get x() {
@@ -94,6 +108,13 @@ class Vector {
 
     get y() {
         return this.#y * this.#h;
+    }
+
+    get h() {
+        return this.#h;
+    }
+    set h(v) {
+        this.#h = v;
     }
 
     getAngle() {
@@ -108,8 +129,8 @@ class Vector {
         if (this.#h == 0) return this;
         deg = deg * (Math.PI/180);
 
-        this.#x = Math.cos(deg) * this.#h;
-        this.#y = Math.sin(deg) * this.#h;
+        this.#x = Math.cos(deg);
+        this.#y = Math.sin(deg);
 
         return this;
     }
@@ -120,8 +141,8 @@ class Vector {
 
         const ang = this.getRad();
 
-        this.#x = Math.cos(ang + deg) * this.#h;
-        this.#y = Math.sin(ang + deg) * this.#h;
+        this.#x = Math.cos(ang + deg);
+        this.#y = Math.sin(ang + deg);
 
         return this;
     }

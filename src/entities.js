@@ -4,11 +4,16 @@ class Entity {
     _y = 0;
     _hasMoved = false;
     _cell = null;
-    _id = uniqueId();
+    #id = uniqueId();
+    _debugColor = null;
 
     constructor(x, y) {
         this._x = x;
         this._y = y;
+    }
+
+    get id() {
+        return this.#id;
     }
 
     get cell() {
@@ -30,6 +35,22 @@ class Entity {
         return this._hasMoved;
     }
 
+    /**
+     * @param {Entity} ent
+     * @returns {Number}
+     */
+    angleTo(ent) {
+        return this.vecBetween(ent).getAngle();
+    }
+
+    /**
+     * @param {Entity} ent
+     * @returns {Vector}
+     */
+    vecBetween(ent) {
+        return Vector.xy(ent.x - this.x, ent.y - this.y);
+    }
+
     update(delta) {
         
     }
@@ -38,14 +59,24 @@ class Entity {
         draw.rect(this.x - 5, this.y - 5, 10, 10);
     }
 
+    /**
+     * @param {Draw} draw
+     */
     draw(draw) {
-        draw.rect(this.x - 5, this.y - 5, 10, 10);
+        if (this._debugColor != null) {
+            draw.rect(this.x - 5, this.y - 5, 10, 10, this._debugColor);
+            this._debugColor = null;
+        }
+        else {
+            draw.rect(this.x - 5, this.y - 5, 10, 10);
+        }
     }
 }
 
 class Player extends Entity {
 
-    #view = (new Vector(1)).angle(0);
+    #viewDist = 500;
+    #view = (new Vector(this.#viewDist)).angle(140);
     #fov = 90;
 
     constructor(x, y) {
@@ -60,28 +91,34 @@ class Player extends Entity {
         return this.#view.getRad();
     }
 
-    update(delta) {
-        this.#view.changeAngle(90 * delta);
+    /**
+     * @param {Number} delta
+     * @param {World} world
+     */
+    update(delta, world) {
+        this.#view.changeAngle(30 * delta);
+
+        const ents = world.getEntitiesInView(this, this.#view, this.#fov);
     }
 
     draw(draw) {
         draw.rect(this.x - 5, this.y - 5, 10, 10, "red");
 
-        draw.line(this.x, this.y, this.x + this.#view.x * 150, this.y + this.#view.y * 150);
+        draw.line(this.x, this.y, this.x + this.#view.x, this.y + this.#view.y);
 
-        let vec1 = (new Vector(1)).angle(this.#view.getAngle());
+        let vec1 = (new Vector(this.#viewDist)).angle(this.#view.getAngle());
 
         vec1.changeAngle(this.#fov/2 * -1);
-        draw.line(this.x, this.y, this.x + vec1.x * 100, this.y + vec1.y * 100, 1, "red");
+        draw.line(this.x, this.y, this.x + vec1.x, this.y + vec1.y, 1, "red");
 
         vec1.changeAngle(this.#fov);
-        draw.line(this.x, this.y, this.x + vec1.x * 100, this.y + vec1.y * 100, 1, "red");
+        draw.line(this.x, this.y, this.x + vec1.x, this.y + vec1.y, 1, "red");
     }
 }
 
 class RandMover extends Entity {
 
-    #vec = (new Vector(10)).angle(Math.random() * 360);
+    #vec = (new Vector(0)).angle(Math.random() * 360);
 
     constructor(x, y) {
         super(x, y);
