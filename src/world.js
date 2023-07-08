@@ -92,6 +92,8 @@ class World {
         const ents = [];
         const visited = new Set();
 
+        const dists = new Map();
+
         let checkCell = (cell) => {
             if (cell != null && !visited.has(cell)) {
                 cell.getEntities().forEach(e => {
@@ -121,7 +123,10 @@ class World {
 
                     if ((l < m && m < r)) {
                         e._debugColor = "red";
-                        ents.push(e);
+                        dists.set(e, ent.distTo(e));
+                        if (dists.get(e) < view.h) {
+                            ents.push(e);
+                        }
                     }
                 });
             }
@@ -148,7 +153,14 @@ class World {
             }
         });
 
-        return ents;
+        let sorted = [... ents];
+        sorted.sort(
+            (a, b) => {
+                return dists.get(b) - dists.get(a);
+            }
+        );
+
+        return sorted;
     }
 
     /**

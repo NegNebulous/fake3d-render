@@ -53,7 +53,7 @@ class Entity {
      * @returns {Number}
      */
     distTo(ent) {
-        return Math.sqrt(Math.pow(this.x - ent.x, 2), Math.pow(this.y - ent.y, 2));
+        return Math.sqrt(Math.pow(this.x - ent.x, 2) + Math.pow(this.y - ent.y, 2));
     }
 
     /**
@@ -86,7 +86,6 @@ class Entity {
      */
     draw(draw, relPos, dist, fov) {
         const relSize = (this.size / ( 2 * (Math.tan(fov/2) * dist))) * draw.width;
-        // console.log(relSize);
         draw.fillRect(draw.width * relPos - relSize/2, draw.height/2 - relSize/2, relSize, relSize);
     }
 }
