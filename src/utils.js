@@ -102,14 +102,37 @@ class Vector {
         return v;
     }
 
+    /**
+     * @returns {Number}
+     */
     get x() {
         return this.#x * this.#h;
     }
 
+    /**
+     * @returns {Number}
+     */
     get y() {
         return this.#y * this.#h;
     }
 
+    /**
+     * @returns {Number}
+     */
+    get nx() {
+        return this.#x;
+    }
+
+    /**
+     * @returns {Number}
+     */
+    get ny() {
+        return this.#y;
+    }
+
+    /**
+     * @returns {Number}
+     */
     get h() {
         return this.#h;
     }
@@ -117,10 +140,17 @@ class Vector {
         this.#h = v;
     }
 
+    /**
+     * @returns {Number}
+     */
     getAngle() {
         return this.getRad() * (180/Math.PI);
     }
 
+    
+    /**
+     * @returns {Number}
+     */
     getRad() {
         return Math.atan2(this.#y, this.#x);
     }
@@ -147,3 +177,17 @@ class Vector {
         return this;
     }
 }
+
+class MapDefault extends Map {
+    get(key) {
+      if (!this.has(key)) {
+        this.set(key, this.defaultVal);
+      }
+      return super.get(key);
+    }
+    
+    constructor(defaultVal, entries) {
+      super(entries);
+      this.defaultVal = defaultVal;
+    }
+  }

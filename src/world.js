@@ -5,7 +5,9 @@ class World {
     #cellSize = 100;
     #displayCells = true;
     // #displayCells = false;
-    #player = new Player(1280/2, 720/2);
+    #player = new Player(new Draw("view2"), 1280/2, 720/2);
+    static #addedListener = false;
+    static #keys = new MapDefault();
     
     /**
      * @param {Draw | String | HTMLCanvasElement} draw
@@ -21,6 +23,23 @@ class World {
         this.add(this.#player);
 
         this.#update(0, 0);
+
+        if (World.#addedListener == false) {
+            World.#addedListener = true;
+
+            document.addEventListener("keydown", World.#keyDown);
+            document.addEventListener("keyup", World.#keyUp);
+        }
+    }
+
+    static #keyDown(event) {
+        // console.log(event);
+        World.#keys.set(event.key, true);
+    }
+
+    static #keyUp(event) {
+        // console.log(event);
+        World.#keys.set(event.key, false);
     }
 
     /**
@@ -39,6 +58,14 @@ class World {
         if (this.#cells[x] == null) return null;
         if (this.#cells[x][y] == null) return null;
         return this.#cells[x][y];
+    }
+
+    /**
+     * @param {String} key
+     * @returns {Boolean}
+     */
+    getKey(key) {
+        return World.#keys.get(key);
     }
 
     /**
@@ -92,10 +119,9 @@ class World {
                         m -= 360;
                     }
 
-                    console.log(`${l}, ${m}, ${r}`);
-
                     if ((l < m && m < r)) {
                         e._debugColor = "red";
+                        ents.push(e);
                     }
                 });
             }
@@ -177,14 +203,16 @@ class World {
                         this.#updateCell(e);
                     }
 
-                    // e.drawDebug(this.#draw);
-                    e.draw(this.#draw);
+                    e.drawDebug(this.#draw);
+                    // e.draw(this.#draw);
                 });
 
                 if (this.#displayCells)
                     this.#draw.rect(bound.x * this.#cellSize, bound.y * this.#cellSize, bound.width, bound.height, (ents.length == 0 ? "blue" : (ents.length > 1 ? "red" : "green")));
             });
         });
+
+        this.#player.drawPov(this);
 
         window.requestAnimationFrame(nextTime => {this.#update(nextTime, time)});
     }

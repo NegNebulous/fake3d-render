@@ -21,6 +21,21 @@ class Draw {
         this.#ctx = this.#canvas.getContext("2d");
         this.#ctx.lineWidth = 1;
         this.#ctx.strokeStyle = "black";
+        this.#ctx.fillStyle = "white";
+    }
+
+    /**
+     * @returns {Number}
+     */
+    get width() {
+        return this.#canvas.width;
+    }
+
+    /**
+     * @returns {Number}
+     */
+    get height() {
+        return this.#canvas.height;
     }
 
     clear() {
@@ -104,6 +119,38 @@ class Draw {
         this.#ctx.strokeStyle = oldColor;
 
         this.#ctx.closePath();
+    }
+
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @param {Number} width
+     * @param {Number} height
+     * @param {String=} color
+     */
+    fillRect(x, y, width, height, color) {
+        this.#ctx.beginPath();
+
+        if (color == null)
+            color = this.#ctx.fillStyle;
+
+        const oldColor = this.#ctx.fillStyle;
+        this.#ctx.fillStyle = color;
+
+        if (Number.isInteger(x)) {
+            x += 0.5;
+            width -= 1;
+        }
+        if (Number.isInteger(y)) {
+            y += 0.5;
+            height -= 1;
+        }
+            
+        this.#ctx.fillRect(x, y, width, height);
+        
+        this.#ctx.fillStyle = oldColor;
+
+        this.rect(x, y, width, height);
     }
 
     /**
