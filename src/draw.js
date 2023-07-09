@@ -25,6 +25,13 @@ class Draw {
     }
 
     /**
+     * @returns {HTMLCanvasElement}
+     */
+    get canvas() {
+        return this.#canvas;
+    }
+
+    /**
      * @returns {Number}
      */
     get width() {
@@ -61,12 +68,13 @@ class Draw {
         const oldColor = this.#ctx.strokeStyle;
         const oldWidth = this.#ctx.lineWidth;
         this.#ctx.strokeStyle = color;
+        this.#ctx.lineWidth = width;
 
-        if (Number.isInteger(x)) {
+        if (Number.isInteger(x) && width == 1) {
             x += 0.5;
             x2 += 0.5;
         }
-        if (Number.isInteger(y)) {
+        if (Number.isInteger(y) && width == 1) {
             y += 0.5;
             y2 += 0.5;
         }

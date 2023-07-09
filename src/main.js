@@ -1,7 +1,9 @@
 const main = () => {
     let world = new World("view");
 
-    // world.add(new Entity(1280/2 + 200, 720/2));
+    // world.add(new Entity(1280/2 + 10, 720/2 - 10));
+    // world.add(new Entity(1280/2 - 300, 720/2));
+    // world.add(new Entity(1280/2 + 300, 720/2 - 50));
     // world.add(new Entity(400, 200));
     // world.add(new Entity(800, 720/2 + 200));
     // world.add(new Entity(800, 720/2 - 200));

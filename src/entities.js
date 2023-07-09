@@ -2,15 +2,19 @@ class Entity {
 
     _x = 0;
     _y = 0;
+    _z = 0;
     _hasMoved = false;
     _cell = null;
     #id = uniqueId();
     _debugColor = null;
     _size = 20;
 
-    constructor(x, y) {
+    constructor(x, y, z) {
         this._x = x;
         this._y = y;
+
+        if (z == null) z = 0;
+        this._z = z;
     }
 
     get size() {
@@ -36,16 +40,31 @@ class Entity {
         return this._y;
     }
 
+    get z() {
+        return this._z;
+    }
+
     get hasMoved() {
         return this._hasMoved;
     }
 
     /**
      * @param {Entity} ent
+     * @param {Boolean=} isVertical defaults to false
      * @returns {Number}
      */
-    angleTo(ent) {
-        return this.vecBetween(ent).getAngle();
+    angleTo(ent, isVertical) {
+        if (isVertical == null) isVertical = false;
+
+        let ang;
+
+        if (isVertical) {
+            ang = this.vecBetween(ent, true).getAngle();
+        }
+        else {
+            ang = this.vecBetween(ent).getAngle();
+        }
+        return ang;
     }
 
     /**
@@ -58,10 +77,18 @@ class Entity {
 
     /**
      * @param {Entity} ent
+     * @param {Boolean=} isVertical defaults to false
      * @returns {Vector}
      */
-    vecBetween(ent) {
-        return Vector.xy(ent.x - this.x, ent.y - this.y);
+    vecBetween(ent, isVertical) {
+        if (isVertical == null) isVertical = false;
+
+        if (isVertical) {
+            return Vector.xy(ent.distTo(this), ent.z - this.z);
+        }
+        else {
+            return Vector.xy(ent.x - this.x, ent.y - this.y);
+        }
     }
 
     update(delta) {
@@ -84,9 +111,9 @@ class Entity {
      * @param {Number} dist
      * @param {Number} fov
      */
-    draw(draw, relPos, dist, fov) {
+    draw(draw, relPosx, relPosy, dist, fov) {
         const relSize = (this.size / ( 2 * (Math.tan(fov/2) * dist))) * draw.width;
-        draw.fillRect(draw.width * relPos - relSize/2, draw.height/2 - relSize/2, relSize, relSize);
+        draw.fillRect(draw.width * relPosx - relSize/2, draw.height * relPosy - relSize/2, relSize, relSize);
     }
 }
 
@@ -94,11 +121,15 @@ class Player extends Entity {
 
     #viewDist = 500;
     #view = (new Vector(this.#viewDist)).angle(0);
+    #viewVertical = (new Vector(this.#viewDist)).angle(0);
     #fov = 90;
+    #vfov = this.#fov;
     #draw;
 
     #moveSpeed = 50;
     #turnSpeed = 45;
+    #mouseSensitivity = 0;
+    #drawCursor = true;
 
     /**
      * @param {Draw} draw
@@ -108,6 +139,20 @@ class Player extends Entity {
     constructor(draw, x, y) {
         super(x, y);
         this.#draw = draw;
+        this.sensitivity = 0.34; // val sens
+
+        this.#draw.canvas.addEventListener("click", async () => {
+            await this.#draw.canvas.requestPointerLock({
+                unadjustedMovement: true,
+            });
+        });
+    }
+
+    get sensitivity() {
+        return this.#mouseSensitivity / 0.07;
+    }
+    set sensitivity(n) {
+        this.#mouseSensitivity = 0.07 * n;
     }
 
     getAngle() {
@@ -154,6 +199,17 @@ class Player extends Entity {
         if (world.getKey("e") || world.getKey("ArrowRight")) {
             this.#view.changeAngle(this.#turnSpeed * delta);
         }
+
+        const mobj = world.getMouse();
+        const mx = mobj.x;
+        const my = mobj.y;
+
+        if (mx != 0) {
+            this.#view.changeAngle(mx * this.#mouseSensitivity);
+        }
+        if (my != 0) {
+            this.#viewVertical.changeAngle(my * this.#mouseSensitivity);
+        }
     }
 
     drawPov(world) {
@@ -161,11 +217,20 @@ class Player extends Entity {
         const ents = world.getEntitiesInView(this, this.#view, this.#fov);
         
         ents.forEach(ent => {
-            const relAng = ((this.angleTo(ent) - this.#view.getAngle()) + this.#fov / 2) / this.#fov;
+            const relAngx = (Vector.minAngle(this.angleTo(ent), this.#view.getAngle()) + this.#fov / 2) / this.#fov;
+            const relAngy = (Vector.minAngle(this.angleTo(ent, true), this.#viewVertical.getAngle()) + this.#fov / 2) / this.#fov;
+
             const dist = this.distTo(ent);
 
-            ent.draw(this.#draw, relAng, dist, this.#fov);
+            ent.draw(this.#draw, relAngx, relAngy, dist, this.#fov);
         });
+
+        if (this.#drawCursor) {
+            const cx = this.#draw.width/2;
+            const cy = this.#draw.height/2;
+            this.#draw.line(cx - 5, cy, cx + 5, cy, 2, "black");
+            this.#draw.line(cx, cy - 5, cx, cy + 5, 2, "black");
+        }
     }
 
     drawDebug(draw) {

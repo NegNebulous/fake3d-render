@@ -6,8 +6,12 @@ class World {
     #displayCells = true;
     // #displayCells = false;
     #player = new Player(new Draw("view2"), 1280/2, 720/2);
+
     static #addedListener = false;
     static #keys = new MapDefault();
+
+    static #relMouse = {x: 0, y: 0};
+    #relMouseCur = {x: 0, y: 0};
     
     /**
      * @param {Draw | String | HTMLCanvasElement} draw
@@ -29,6 +33,7 @@ class World {
 
             document.addEventListener("keydown", World.#keyDown);
             document.addEventListener("keyup", World.#keyUp);
+            document.addEventListener("mousemove", World.#MouseMove);
         }
     }
 
@@ -40,6 +45,11 @@ class World {
     static #keyUp(event) {
         // console.log(event);
         World.#keys.set(event.key, false);
+    }
+
+    static #MouseMove(event) {
+        World.#relMouse.x += event.movementX;
+        World.#relMouse.y += event.movementY;
     }
 
     /**
@@ -66,6 +76,16 @@ class World {
      */
     getKey(key) {
         return World.#keys.get(key);
+    }
+
+    /**
+     * @returns {Object} obj.x = rel x movement, obj.y = rel y movement
+     */
+    getMouse() {
+        return {
+            "x": World.#relMouse.x - this.#relMouseCur.x,
+            "y": World.#relMouse.y - this.#relMouseCur.y
+        };
     }
 
     /**
@@ -98,34 +118,13 @@ class World {
             if (cell != null && !visited.has(cell)) {
                 cell.getEntities().forEach(e => {
                     if (ent == e) return;
-                    
                     const ang = ent.angleTo(e);
-
-                    let l = left.getAngle();
-                    let m = ang;
-                    let r = right.getAngle();
-                    if (r < 0) {
-                        r = 180 + (180 - Math.abs(r));
-                    }
-                    if (l < 0) {
-                        l = 180 + (180 - Math.abs(l));
-                    }
-                    if (m < 0) {
-                        m = 180 + (180 - Math.abs(m));
-                    }
-
-                    if (l > r) {
-                        l -= 360;
-                    }
-                    if (m > r) {
-                        m -= 360;
-                    }
-
-                    if ((l < m && m < r)) {
-                        e._debugColor = "red";
+                    // console.log(Math.abs(Vector.minAngle(ang, view.getAngle())));
+                    if (Math.abs(Vector.minAngle(ang, view.getAngle())) < fov/2) {
                         dists.set(e, ent.distTo(e));
                         if (dists.get(e) < view.h) {
                             ents.push(e);
+                            e._debugColor = "red";
                         }
                     }
                 });
@@ -153,6 +152,7 @@ class World {
             }
         });
 
+        // sort each cell then sort the cells would be much faster
         let sorted = [... ents];
         sorted.sort(
             (a, b) => {
@@ -226,6 +226,8 @@ class World {
 
         this.#player.drawPov(this);
 
+        this.#relMouseCur.x = World.#relMouse.x;
+        this.#relMouseCur.y = World.#relMouse.y;
         window.requestAnimationFrame(nextTime => {this.#update(nextTime, time)});
     }
 }
@@ -236,7 +238,8 @@ class Cell {
     #y = null;
     #width = null;
     #height = null;
-    #entities = new HashMap(obj => obj.id);
+    // #entities = new HashMap(obj => obj.id);
+    #entities = new Set();
 
     constructor(x, y, width, height) {
         this.#x = x;
@@ -261,7 +264,7 @@ class Cell {
      * @returns {Array<Entity>}
      */
     getEntities() {
-        return this.#entities.getAll();
+        return [... this.#entities.values()];
     }
 
     getBounds() {
@@ -285,6 +288,6 @@ class Cell {
         if (!(entity instanceof Entity))
             throw new Error("entity must be an instance of Entity");
 
-        this.#entities.remove(entity);
+        this.#entities.delete(entity);
     }
 }

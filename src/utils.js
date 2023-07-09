@@ -176,18 +176,44 @@ class Vector {
 
         return this;
     }
+
+    /**
+     * @param {Number} ang 
+     * @returns {Number}
+     */
+    static convertTo360(ang) {
+        if (ang < 0) {
+            return 180 + (180 - Math.abs(ang))
+        }
+        return ang;
+    }
+
+    /**
+     * @param {Number} ang1 
+     * @param {Number} ang2 
+     * @returns {Number}
+     */
+    static minAngle(ang1, ang2) {
+        ang1 = Vector.convertTo360(ang1);
+        ang2 = Vector.convertTo360(ang2);
+        
+        const result = ang1 - ang2;
+        const s = (result < 0 ? -1 : 1);
+
+        return (Math.abs(result) > 180 ? (Math.abs(result) - 360) * s : result);
+    }
 }
 
 class MapDefault extends Map {
     get(key) {
-      if (!this.has(key)) {
-        this.set(key, this.defaultVal);
-      }
-      return super.get(key);
+        if (!this.has(key)) {
+            this.set(key, this.defaultVal);
+        }
+        return super.get(key);
     }
     
     constructor(defaultVal, entries) {
-      super(entries);
-      this.defaultVal = defaultVal;
+        super(entries);
+        this.defaultVal = defaultVal;
     }
-  }
+}
