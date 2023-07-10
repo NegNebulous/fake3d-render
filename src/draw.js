@@ -212,7 +212,8 @@ class Draw {
 
         size = size/2;
         this.#ctx.arc(x + size, y + size, size, 0, 2 * Math.PI);
-
+        
+        this.#ctx.fill();
         this.#ctx.stroke();
         this.#ctx.closePath();
         

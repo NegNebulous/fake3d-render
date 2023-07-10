@@ -120,7 +120,7 @@ class World {
                     if (ent == e) return;
                     const ang = ent.angleTo(e);
                     if (Math.abs(Vector.minAngle(ang, view.getAngle())) < fov/2) {
-                        dists.set(e, ent.distTo(e));
+                        dists.set(e, ent.distTo(e, false));
                         if (dists.get(e) < view.h) {
                             ents.push(e);
                             e._debugColor = "red";

@@ -104,6 +104,13 @@ class Player extends Entity {
         }
         if (my != 0) {
             // TODO limit this so the player doesn't wrap around and break everything
+            const oldAngle = this.#viewVertical.getAngle();
+            const sign = (oldAngle > 0 ? 1 : -1);
+            if (Math.abs(oldAngle + my * this.#mouseSensitivity) > 180) {
+                this.#viewVertical.angle(179 * sign);
+                return;
+            }
+            
             this.#viewVertical.changeAngle(my * this.#mouseSensitivity);
         }
     }
