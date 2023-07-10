@@ -3,8 +3,8 @@ class Player extends Entity {
     #viewDist = 500;
     #view = (new Vector(this.#viewDist)).angle(0);
     #viewVertical = (new Vector(this.#viewDist)).angle(0);
-    #fov = 90;
-    #vfov = this.#fov;
+    #fov = 90; // DO NOT CHANGE
+    #vfov = null;
     #draw;
 
     #moveSpeed = 50;
@@ -21,6 +21,13 @@ class Player extends Entity {
         super(x, y);
         this.#draw = draw;
         this.sensitivity = 0.34; // val sens
+
+        // maybe this needs to be re-calcualted every time the canvas size changes
+        this.#vfov = this.#fov * (draw.height / draw.width) * 1.1598124856411365923; // I have no idea why this needs to be here
+        // console.log(this.#fov);
+        // console.log(this.#vfov);
+        // this.#vfov = this.#fov * (draw.width / draw.height);
+        // this.#vfov = 94;
 
         this.#draw.canvas.addEventListener("click", async () => {
             await this.#draw.canvas.requestPointerLock({
@@ -74,6 +81,13 @@ class Player extends Entity {
             this._hasMoved = true;
         }
 
+        if (world.getKey(" ")) {
+            this._z += this.#moveSpeed * delta;
+        }
+        if (world.getKey("Shift")) {
+            this._z -= this.#moveSpeed * delta;
+        }
+
         if (world.getKey("q") || world.getKey("ArrowLeft")) {
             this.#view.changeAngle(-1 * this.#turnSpeed * delta);
         }
@@ -89,6 +103,7 @@ class Player extends Entity {
             this.#view.changeAngle(mx * this.#mouseSensitivity);
         }
         if (my != 0) {
+            // TODO limit this so the player doesn't wrap around and break everything
             this.#viewVertical.changeAngle(my * this.#mouseSensitivity);
         }
     }
@@ -99,11 +114,13 @@ class Player extends Entity {
         
         ents.forEach(ent => {
             const relAngx = (Vector.minAngle(this.angleTo(ent), this.#view.getAngle()) + this.#fov / 2) / this.#fov;
-            const relAngy = (Vector.minAngle(this.angleTo(ent, true), this.#viewVertical.getAngle()) + this.#fov / 2) / this.#fov;
+            const relAngy = (Vector.minAngle(this.angleTo(ent, true), this.#viewVertical.getAngle()) + this.#vfov / 2) / this.#vfov;
 
-            const dist = this.distTo(ent);
+            // const h = this.distTo(ent, false);
+            // const bh = this.distTo(ent, true);
+            // const dist = Math.sin(this.angleTo(ent) * (Math.PI / 180)) * bh;
 
-            ent.draw(this.#draw, relAngx, relAngy, dist, this.#fov);
+            ent.draw(this.#draw, relAngx, relAngy, this.distTo(ent, false), this.#fov, this.#vfov);
         });
 
         if (this.#drawCursor) {

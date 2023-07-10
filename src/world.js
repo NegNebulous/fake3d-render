@@ -119,7 +119,6 @@ class World {
                 cell.getEntities().forEach(e => {
                     if (ent == e) return;
                     const ang = ent.angleTo(e);
-                    // console.log(Math.abs(Vector.minAngle(ang, view.getAngle())));
                     if (Math.abs(Vector.minAngle(ang, view.getAngle())) < fov/2) {
                         dists.set(e, ent.distTo(e));
                         if (dists.get(e) < view.h) {

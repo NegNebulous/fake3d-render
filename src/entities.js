@@ -56,23 +56,27 @@ class Entity {
     angleTo(ent, isVertical) {
         if (isVertical == null) isVertical = false;
 
-        let ang;
-
         if (isVertical) {
-            ang = this.vecBetween(ent, true).getAngle();
+            return this.vecBetween(ent, true).getAngle();
         }
         else {
-            ang = this.vecBetween(ent).getAngle();
+            return this.vecBetween(ent).getAngle();
         }
-        return ang;
     }
 
     /**
      * @param {Entity} ent
+     * @param {Boolean} is2d default to true
      * @returns {Number}
      */
-    distTo(ent) {
-        return Math.sqrt(Math.pow(this.x - ent.x, 2) + Math.pow(this.y - ent.y, 2));
+    distTo(ent, is2d) {
+        if (is2d == null) is2d = true;
+        if (is2d) {
+            return Math.sqrt(Math.pow(this.x - ent.x, 2) + Math.pow(this.y - ent.y, 2));
+        }
+        else {
+            return Math.sqrt(Math.pow(this.x - ent.x, 2) + Math.pow(this.y - ent.y, 2) + Math.pow(this.z - ent.z, 2));
+        }
     }
 
     /**
@@ -84,7 +88,7 @@ class Entity {
         if (isVertical == null) isVertical = false;
 
         if (isVertical) {
-            return Vector.xy(ent.distTo(this), ent.z - this.z);
+            return Vector.xy(this.distTo(ent), this.z - ent.z);
         }
         else {
             return Vector.xy(ent.x - this.x, ent.y - this.y);
@@ -111,9 +115,35 @@ class Entity {
      * @param {Number} dist
      * @param {Number} fov
      */
-    draw(draw, relPosx, relPosy, dist, fov) {
+    draw(draw, relPosx, relPosy, dist, fov, vfov) {
+        fov = fov * (Math.PI/180);
+        vfov = vfov * (Math.PI/180);
+        const relSizex = (this.size / ( 2 * (Math.tan(fov/2) * dist))) * draw.width;
+        const relSizey = (this.size / ( 2 * (Math.tan(vfov/2) * dist))) * draw.height;
+
+        draw.fillRect(draw.width * relPosx - relSizex/2, draw.height * relPosy - relSizey/2, relSizex, relSizey);
+    }
+}
+
+class Target extends Entity {
+    constructor(x, y, z) {
+        super(x, y, z);
+
+        this._size = 15;
+    }
+
+    /**
+     * @param {Draw} draw
+     * @param {Number} relPos
+     * @param {Number} dist
+     * @param {Number} fov
+     */
+    draw(draw, relPosx, relPosy, dist, fov, vfov) {
+        fov = fov * (Math.PI/180);
+        vfov = vfov * (Math.PI/180);
         const relSize = (this.size / ( 2 * (Math.tan(fov/2) * dist))) * draw.width;
-        draw.fillRect(draw.width * relPosx - relSize/2, draw.height * relPosy - relSize/2, relSize, relSize);
+
+        draw.circle(draw.width * relPosx - relSize/2, draw.height * relPosy - relSize/2, relSize);
     }
 }
 

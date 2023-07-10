@@ -193,4 +193,29 @@ class Draw {
 
         this.#ctx.closePath();
     }
+
+    circle(x, y, size, color) {
+        this.#ctx.beginPath();
+
+        if (color == null)
+            color = this.#ctx.fillStyle;
+
+        const oldColor = this.#ctx.fillStyle;
+        this.#ctx.fillStyle = color;
+
+        if (Number.isInteger(x)) {
+            x += 0.5;
+            size -= 1;
+        }
+            
+        this.#ctx.beginPath();
+
+        size = size/2;
+        this.#ctx.arc(x + size, y + size, size, 0, 2 * Math.PI);
+
+        this.#ctx.stroke();
+        this.#ctx.closePath();
+        
+        this.#ctx.fillStyle = oldColor;
+    }
 }
