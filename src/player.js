@@ -43,6 +43,9 @@ class Player extends Entity {
         this.#mouseSensitivity = 0.07 * n;
     }
 
+    /**
+     * @returns {Number}
+     */
     getAngle() {
         return this.#view.getAngle();
     }
